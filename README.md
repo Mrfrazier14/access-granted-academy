@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Access Granted Academy
 
-## Getting Started
+Free learning platform for Cybersecurity and Software Engineering, built by Aaron Frazier.
 
-First, run the development server:
+## Stack
+
+Next.js (App Router) + TypeScript, PostgreSQL (via Docker) + Prisma, NextAuth (Auth.js) credentials login.
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up -d        # starts Postgres on localhost:5433
+npm install
+npx prisma migrate dev      # applies the schema
+npm run seed                # loads the Cybersecurity + SWE course content
+npm run dev                 # starts the app on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What's here
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Sign up / sign in (email + password, hashed with bcrypt)
+- Two learning tracks: **Cybersecurity Fundamentals** and **Software Engineering & Full Stack Dev**, each with 3 modules and 6 lessons
+- Lesson pages with a "Mark as Complete" button that tracks per-user progress
+- Quizzes tied to specific lessons, graded server-side (correct answers are never sent to the client before submission)
+- A dashboard showing per-track progress and quiz history
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Notes
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `.env` holds local dev secrets (`DATABASE_URL`, `AUTH_SECRET`) — never commit this file to a public repo. Before deploying anywhere public, generate a fresh `AUTH_SECRET` (e.g. `openssl rand -hex 32`) and point `DATABASE_URL` at a real hosted Postgres instance.
+- The local Postgres container runs on port `5433` (not `5432`) to avoid conflicting with a native Postgres install on this machine.

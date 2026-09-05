@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  lessonProgress LessonProgress[]
+  quizAttempts   QuizAttempt[]
+}
+
+model Track {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  tagline     String
+  description String
+  icon        String
+  order       Int    @default(0)
+
+  modules Module[]
+}
+
+model Module {
+  id      String @id @default(cuid())
+  slug    String
+  title   String
+  summary String
+  order   Int    @default(0)
+
+  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String
+
+  lessons Lesson[]
+
+  @@unique([trackId, slug])
+}
+
+model Lesson {
+  id      String @id @default(cuid())
+  slug    String
+  title   String
+  content String @db.Text
+  order   Int    @default(0)
+
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String
+
+  quiz     Quiz?
+  progress LessonProgress[]
+
+  @@unique([moduleId, slug])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  completedAt DateTime @default(now())
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String
+
+  @@unique([userId, lessonId])
+}
+
+model Quiz {
+  id    String @id @default(cuid())
+  title String
+
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String @unique
+
+  questions Question[]
+  attempts  QuizAttempt[]
+}
+
+model Question {
+  id     String @id @default(cuid())
+  prompt String
+  order  Int    @default(0)
+
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId String
+
+  choices Choice[]
+}
+
+model Choice {
+  id        String  @id @default(cuid())
+  text      String
+  isCorrect Boolean @default(false)
+  order     Int     @default(0)
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  score       Int
+  totalPoints Int
+  createdAt   DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId String
+}
