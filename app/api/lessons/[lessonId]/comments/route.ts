@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { maybeIssueCertificate } from "@/lib/certificates";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
   const session = await auth();
@@ -13,21 +12,22 @@ export async function POST(
   }
 
   const { lessonId } = await params;
+  const body = (await request.json()) as { body: string };
+  const text = (body.body ?? "").trim();
+
+  if (!text || text.length > 2000) {
+    return NextResponse.json({ error: "Comment must be 1-2000 characters" }, { status: 400 });
+  }
 
   const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
   if (!lesson) {
     return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
   }
 
-  await prisma.lessonProgress.upsert({
-    where: {
-      userId_lessonId: { userId: session.user.id, lessonId },
-    },
-    update: {},
-    create: { userId: session.user.id, lessonId },
+  const comment = await prisma.comment.create({
+    data: { lessonId, userId: session.user.id, body: text },
+    include: { user: { select: { name: true } } },
   });
 
-  const certificate = await maybeIssueCertificate(session.user.id, lessonId);
-
-  return NextResponse.json({ ok: true, certificateIssued: !!certificate });
+  return NextResponse.json({ comment });
 }

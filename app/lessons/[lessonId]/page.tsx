@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import CompleteLessonButton from "@/components/CompleteLessonButton";
+import LessonComments from "@/components/LessonComments";
 
 export default async function LessonPage({
   params,
@@ -38,6 +39,12 @@ export default async function LessonPage({
     });
     initiallyComplete = !!existing;
   }
+
+  const comments = await prisma.comment.findMany({
+    where: { lessonId: lesson.id },
+    orderBy: { createdAt: "desc" },
+    include: { user: { select: { name: true } } },
+  });
 
   return (
     <section className="section">
@@ -81,6 +88,17 @@ export default async function LessonPage({
             </Link>
           )}
         </div>
+
+        <LessonComments
+          lessonId={lesson.id}
+          initialComments={comments.map((c) => ({
+            id: c.id,
+            body: c.body,
+            createdAt: c.createdAt.toISOString(),
+            user: c.user,
+          }))}
+          signedIn={!!session?.user}
+        />
       </div>
     </section>
   );

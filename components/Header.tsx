@@ -13,9 +13,13 @@ export default async function Header() {
         </Link>
         <div className="nav-links">
           <Link href="/tracks">~/tracks</Link>
+          <Link href="/coding">~/coding</Link>
+          <Link href="/interview-prep">~/interview-prep</Link>
+          <Link href="/pricing">~/pricing</Link>
           {session?.user ? (
             <>
               <Link href="/dashboard">~/dashboard</Link>
+              <Link href="/certificates">~/certificates</Link>
               <form
                 action={async () => {
                   "use server";

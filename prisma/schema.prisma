@@ -7,15 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Tier {
+  FREE
+  PRO
+  MAX
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
   email        String   @unique
   passwordHash String
+  tier         Tier     @default(FREE)
+  bio          String?
+  isPublic     Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  lessonProgress LessonProgress[]
-  quizAttempts   QuizAttempt[]
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?  @unique
+  stripeCurrentPeriodEnd DateTime?
+
+  lessonProgress     LessonProgress[]
+  quizAttempts       QuizAttempt[]
+  certificates       Certificate[]
+  codingSubmissions  CodingSubmission[]
+  comments           Comment[]
 }
 
 model Track {
@@ -26,8 +42,10 @@ model Track {
   description String
   icon        String
   order       Int    @default(0)
+  minTier     Tier   @default(FREE)
 
-  modules Module[]
+  modules      Module[]
+  certificates Certificate[]
 }
 
 model Module {
@@ -57,6 +75,7 @@ model Lesson {
 
   quiz     Quiz?
   progress LessonProgress[]
+  comments Comment[]
 
   @@unique([moduleId, slug])
 }
@@ -115,4 +134,77 @@ model QuizAttempt {
   userId String
   quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
   quizId String
+}
+
+model Certificate {
+  id        String   @id @default(cuid())
+  issuedAt  DateTime @default(now())
+  serial    String   @unique
+
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId String
+
+  @@unique([userId, trackId])
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model CodingProblem {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  title        String
+  difficulty   Difficulty
+  prompt       String     @db.Text
+  starterCode  String     @db.Text
+  testCode     String     @db.Text
+  minTier      Tier       @default(FREE)
+  order        Int        @default(0)
+
+  submissions CodingSubmission[]
+}
+
+model CodingSubmission {
+  id          String   @id @default(cuid())
+  code        String   @db.Text
+  passed      Boolean
+  submittedAt DateTime @default(now())
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  problem   CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problemId String
+
+  @@unique([userId, problemId])
+}
+
+enum InterviewCategory {
+  BEHAVIORAL
+  TECHNICAL
+}
+
+model InterviewQuestion {
+  id            String            @id @default(cuid())
+  category      InterviewCategory
+  prompt        String
+  sampleAnswer  String            @db.Text
+  tips          String            @db.Text
+  minTier       Tier              @default(FREE)
+  order         Int               @default(0)
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String
 }

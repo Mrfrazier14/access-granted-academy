@@ -2,6 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { tierLabel } from "@/lib/tier";
+import ManageBillingButton from "@/components/ManageBillingButton";
+import ProfileSettings from "@/components/ProfileSettings";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -10,6 +13,7 @@ export default async function DashboardPage() {
   }
 
   const userId = session.user.id;
+  const currentUser = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
   const [tracks, completedLessons, quizAttempts] = await Promise.all([
     prisma.track.findMany({
@@ -44,6 +48,16 @@ export default async function DashboardPage() {
             You've completed {completedIds.size} of {totalLessons} lessons across all
             tracks.
           </p>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <span className="tag done">{tierLabel(currentUser.tier)} plan</span>
+            {currentUser.tier === "FREE" ? (
+              <Link href="/pricing" className="btn btn-outline">
+                Upgrade Plan
+              </Link>
+            ) : (
+              <ManageBillingButton />
+            )}
+          </div>
         </div>
       </section>
 
@@ -122,6 +136,16 @@ export default async function DashboardPage() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <ProfileSettings
+            userId={currentUser.id}
+            initialBio={currentUser.bio ?? ""}
+            initialIsPublic={currentUser.isPublic}
+          />
         </div>
       </section>
     </>

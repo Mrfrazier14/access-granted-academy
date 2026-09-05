@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { maybeIssueCertificate } from "@/lib/certificates";
 
 export async function POST(
   request: Request,
@@ -53,5 +54,7 @@ export async function POST(
     create: { userId: session.user.id, lessonId: quiz.lessonId },
   });
 
-  return NextResponse.json({ score, totalPoints, results });
+  const certificate = await maybeIssueCertificate(session.user.id, quiz.lessonId);
+
+  return NextResponse.json({ score, totalPoints, results, certificateIssued: !!certificate });
 }
