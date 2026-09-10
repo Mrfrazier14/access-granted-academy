@@ -13,6 +13,10 @@ export default async function Header() {
         </Link>
         <div className="nav-links">
           <Link href="/tracks">~/tracks</Link>
+          <Link href="/ai">~/ai</Link>
+          <Link href="/workshops">~/workshops</Link>
+          <Link href="/business-training">~/business</Link>
+          <Link href="/media">~/media</Link>
           <Link href="/coding">~/coding</Link>
           <Link href="/interview-prep">~/interview-prep</Link>
           <Link href="/pricing">~/pricing</Link>
