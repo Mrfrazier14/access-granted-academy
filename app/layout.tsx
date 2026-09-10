@@ -4,9 +4,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Access Granted Academy | Learn Cybersecurity & Software Engineering",
+  title: "Access Granted Academy | AI, Cybersecurity, IT & Software Engineering",
   description:
-    "Free, hands-on lessons and quizzes in cybersecurity and software engineering from Access Granted.",
+    "Hands-on AI, cybersecurity, IT, and software engineering education, live workshops, business training, tech media, and practical learning from Access Granted Academy.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
